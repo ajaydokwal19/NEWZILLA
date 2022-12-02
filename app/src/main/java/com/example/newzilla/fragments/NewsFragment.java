@@ -18,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -35,8 +36,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.newzilla.R;
 import com.example.newzilla.adapter.AgriNewsAdapter;
 import com.example.newzilla.bean.NewsBean;
+import com.example.newzilla.network.ConnectionDetector;
 import com.example.newzilla.network.MySingleton;
 import com.example.newzilla.utils.Methods;
+import com.example.newzilla.utils.Tools;
 import com.google.android.material.tabs.TabLayout;
 
 
@@ -61,6 +64,7 @@ public class NewsFragment extends Fragment {
     TabLayout tl_tabs;
     RecyclerView recycler_view_news;
     ProgressBar progressBar;
+    ConnectionDetector connectionDetector;
 
     View view;
 
@@ -108,6 +112,8 @@ public class NewsFragment extends Fragment {
 
     public void setting() {
 
+        connectionDetector = new ConnectionDetector(getActivity());
+
         tl_tabs.addTab(tl_tabs.newTab().setText("Home"));
         tl_tabs.addTab(tl_tabs.newTab().setText("World"));
         tl_tabs.addTab(tl_tabs.newTab().setText("Science"));
@@ -116,32 +122,39 @@ public class NewsFragment extends Fragment {
         tl_tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-               int position = tab.getPosition();
-               newsBeanArrayList.clear();
-               if(position == 0){
+                int position = tab.getPosition();
+                if (connectionDetector.isConnectedToInternet()) {
+                    newsBeanArrayList.clear();
+                    if (position == 0) {
 
-                   progressBar.setVisibility(View.VISIBLE);
-                   String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Breaking News";
+                        progressBar.setVisibility(View.VISIBLE);
+                        String ProductsUrl = "https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Breaking News";
 
-                   getNews(ProductsUrl);
-               }if(position == 1){
+                        getNews(ProductsUrl);
+                    }
+                    if (position == 1) {
 
-                    progressBar.setVisibility(View.VISIBLE);
-                    String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=World";
+                        progressBar.setVisibility(View.VISIBLE);
+                        String ProductsUrl = "https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=World";
 
-                    getNews(ProductsUrl);
-                }if(position == 2){
+                        getNews(ProductsUrl);
+                    }
+                    if (position == 2) {
 
-                    progressBar.setVisibility(View.VISIBLE);
-                    String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Science";
+                        progressBar.setVisibility(View.VISIBLE);
+                        String ProductsUrl = "https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Science";
 
-                    getNews(ProductsUrl);
-                }if(position == 3){
+                        getNews(ProductsUrl);
+                    }
+                    if (position == 3) {
 
-                    progressBar.setVisibility(View.VISIBLE);
-                    String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Sports";
+                        progressBar.setVisibility(View.VISIBLE);
+                        String ProductsUrl = "https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Sports";
 
-                    getNews(ProductsUrl);
+                        getNews(ProductsUrl);
+                    }
+                }else {
+                    Toast.makeText(getActivity(),"Please check your internet connection",Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -157,33 +170,43 @@ public class NewsFragment extends Fragment {
         });
 
         recycler_view_news.setLayoutManager(new LinearLayoutManager(getActivity()));
+        if (connectionDetector.isConnectedToInternet()) {
+            progressBar.setVisibility(View.VISIBLE);
+            String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Breaking News";
 
-        progressBar.setVisibility(View.VISIBLE);
-        String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q=Breaking News";
+            getNews(ProductsUrl);
 
-        getNews(ProductsUrl);
+        }else {
+            Toast.makeText(getActivity(),"Please check your internet connection",Toast.LENGTH_SHORT).show();
+        }
 
         iv_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // clear old data
-                tl_tabs.getTabAt(0).select();
-                newsBeanArrayList.clear();
-                Methods.hideKeyboard(getActivity());
-                String query = et_search.getText().toString().trim();
 
-                if(query.length() == 0){
+                if (connectionDetector.isConnectedToInternet()) {
+                    // clear old data
+                    tl_tabs.getTabAt(0).select();
+                    newsBeanArrayList.clear();
+                    Methods.hideKeyboard(getActivity());
+                    String query = et_search.getText().toString().trim();
 
-                    et_search.requestFocus();
-                    et_search.setError("Required");
+                    if(query.length() == 0){
 
-                    return;
+                        et_search.requestFocus();
+                        et_search.setError("Required");
+
+                        return;
+                    }
+
+                    progressBar.setVisibility(View.VISIBLE);
+                    String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q="+query;
+
+                    getNews(ProductsUrl);
+
+                }else {
+                    Toast.makeText(getActivity(),"Please check your internet connection",Toast.LENGTH_SHORT).show();
                 }
-
-                progressBar.setVisibility(View.VISIBLE);
-                String ProductsUrl ="https://newsapi.org/v2/everything?apiKey=3dde7d72125c405aa30da1188df9d655&q="+query;
-
-                getNews(ProductsUrl);
 
             }
         });
